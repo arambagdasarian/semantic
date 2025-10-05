@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russian Elite Network Analysis - Interactive Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            min-height: 100vh;
+        }
+        
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        .header h1 {
+            text-align: center;
+            color: #2c3e50;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+        
+        .header p {
+            text-align: center;
+            color: #7f8c8d;
+            font-size: 1.1em;
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+        
+        .controls {
+            background: rgba(255, 255, 255, 0.9);
+            margin: 30px auto;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        .period-selector {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .period-btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 25px;
+            background: #3498db;
+            color: white;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 3px 10px rgba(52, 152, 219, 0.3);
+        }
+        
+        .period-btn:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
+        }
+        
+        .period-btn.active {
+            background: #e74c3c;
+            box-shadow: 0 3px 10px rgba(231, 76, 60, 0.3);
+        }
+        
+        .download-section {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #ecf0f1;
+        }
+        
+        .download-btn {
+            padding: 10px 20px;
+            margin: 5px;
+            border: none;
+            border-radius: 20px;
+            background: #27ae60;
+            color: white;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.3s ease;
+        }
+        
+        .download-btn:hover {
+            background: #229954;
+            transform: translateY(-1px);
+        }
+        
+        .visualization-container {
+            background: rgba(255, 255, 255, 0.95);
+            margin: 20px auto;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+        
+        .viz-frame {
+            width: 100%;
+            height: 800px;
+            border: none;
+            display: none;
+        }
+        
+        .viz-frame.active {
+            display: block;
+        }
+        
+        .period-info {
+            padding: 20px;
+            background: rgba(52, 152, 219, 0.1);
+            margin-bottom: 0;
+        }
+        
+        .period-info h3 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 1.3em;
+        }
+        
+        .period-info p {
+            color: #7f8c8d;
+            line-height: 1.6;
+        }
+        
+        .footer {
+            background: rgba(44, 62, 80, 0.9);
+            color: white;
+            text-align: center;
+            padding: 30px 0;
+            margin-top: 50px;
+        }
+        
+        .footer p {
+            margin-bottom: 10px;
+        }
+        
+        .footer a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        
+        .footer a:hover {
+            text-decoration: underline;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 50px;
+            color: #7f8c8d;
+            font-size: 1.1em;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .stat-card {
+            background: rgba(255, 255, 255, 0.8);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #e74c3c;
+            display: block;
+        }
+        
+        .stat-label {
+            color: #7f8c8d;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .period-selector {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .period-btn {
+                width: 200px;
+            }
+            
+            .viz-frame {
+                height: 600px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="container">
+            <h1>Russian Elite Network Analysis</h1>
+            <p>Interactive exploration of the RDIF/Dmitriev network across four critical geopolitical periods. 
+               This visualization reveals the stable domestic core and flexible international periphery of Russian elite networks.</p>
+        </div>
+    </div>
+    
+    <div class="container">
+        <div class="controls">
+            <h3 style="margin-bottom: 20px; color: #2c3e50;">Select Time Period</h3>
+            
+            <div class="period-selector">
+                <button class="period-btn active" onclick="showPeriod('pre_crimea')">
+                    Pre-Crimea (2012-2014)
+                </button>
+                <button class="period-btn" onclick="showPeriod('post_crimea')">
+                    Post-Crimea (2014-2020)
+                </button>
+                <button class="period-btn" onclick="showPeriod('covid')">
+                    COVID-19 (2020-2022)
+                </button>
+                <button class="period-btn" onclick="showPeriod('war')">
+                    War Period (2022-2024)
+                </button>
+            </div>
+            
+            <div class="stats-grid" id="currentStats">
+                <!-- Stats will be populated by JavaScript -->
+            </div>
+            
+            <div class="download-section">
+                <h4 style="margin-bottom: 15px; color: #2c3e50;">Download Visualizations</h4>
+                <button class="download-btn" onclick="downloadCurrent()">
+                    📊 Download Current Period
+                </button>
+                <button class="download-btn" onclick="downloadAll()">
+                    📁 Download All Periods
+                </button>
+                <button class="download-btn" onclick="downloadReport()">
+                    📄 Download Analysis Report
+                </button>
+            </div>
+        </div>
+        
+        <div class="visualization-container">
+            <div class="period-info" id="periodInfo">
+                <!-- Period information will be populated by JavaScript -->
+            </div>
+            
+            <iframe id="viz_pre_crimea" class="viz-frame active" src="semantic_communities_pre_crimea.html"></iframe>
+            <iframe id="viz_post_crimea" class="viz-frame" src="semantic_communities_post_crimea.html"></iframe>
+            <iframe id="viz_covid" class="viz-frame" src="semantic_communities_covid.html"></iframe>
+            <iframe id="viz_war" class="viz-frame" src="semantic_communities_war.html"></iframe>
+            
+            <div class="loading" id="loading" style="display: none;">
+                Loading visualization...
+            </div>
+        </div>
+    </div>
+    
+    <div class="footer">
+        <div class="container">
+            <p><strong>Russian Elite Network Analysis</strong></p>
+            <p>Research by Aran Bagdasarian | Supervised by Dr. Sebastian Hoppe</p>
+            <p>Centre for East European and International Studies (ZOiS)</p>
+            <p><a href="https://github.com/aranbagdasarian/ScrapeTestSNA" target="_blank">View on GitHub</a></p>
+        </div>
+    </div>
+    
+    <script>
+        // Period data and descriptions
+        const periodData = {
+            'pre_crimea': {
+                title: 'Pre-Crimea Period (2012-2014)',
+                description: 'The foundational period of the RDIF network, characterized by initial international partnerships and the establishment of core institutional relationships. This period shows the baseline structure before major geopolitical disruptions.',
+                stats: {
+                    entities: '67',
+                    connections: '166',
+                    communities: '6',
+                    modularity: '0.240'
+                }
+            },
+            'post_crimea': {
+                title: 'Post-Crimea Period (2014-2020)',
+                description: 'Following the annexation of Crimea and subsequent sanctions, this period demonstrates network adaptation and expansion. The core remains stable while international partnerships undergo significant reconfiguration.',
+                stats: {
+                    entities: '240',
+                    connections: '1,162',
+                    communities: '6',
+                    modularity: '0.288'
+                }
+            },
+            'covid': {
+                title: 'COVID-19 Period (2020-2022)',
+                description: 'The pandemic period reveals network flexibility as new health and pharmaceutical partnerships emerge. The RDIF\'s role in vaccine diplomacy becomes prominent, showing the network\'s adaptability to global crises.',
+                stats: {
+                    entities: '75',
+                    connections: '163',
+                    communities: '6',
+                    modularity: '0.142'
+                }
+            },
+            'war': {
+                title: 'War Period (2022-2024)',
+                description: 'The Ukraine conflict period shows maximum network consolidation and adaptation under extreme pressure. International partnerships become highly selective while the domestic core demonstrates remarkable resilience.',
+                stats: {
+                    entities: '57',
+                    connections: '193',
+                    communities: '3',
+                    modularity: '0.112'
+                }
+            }
+        };
+        
+        let currentPeriod = 'pre_crimea';
+        
+        function showPeriod(period) {
+            // Update active button
+            document.querySelectorAll('.period-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // Hide all frames
+            document.querySelectorAll('.viz-frame').forEach(frame => {
+                frame.classList.remove('active');
+            });
+            
+            // Show selected frame
+            document.getElementById('viz_' + period).classList.add('active');
+            
+            // Update period info
+            updatePeriodInfo(period);
+            
+            currentPeriod = period;
+        }
+        
+        function updatePeriodInfo(period) {
+            const data = periodData[period];
+            const infoDiv = document.getElementById('periodInfo');
+            const statsDiv = document.getElementById('currentStats');
+            
+            infoDiv.innerHTML = `
+                <h3>${data.title}</h3>
+                <p>${data.description}</p>
+            `;
+            
+            statsDiv.innerHTML = `
+                <div class="stat-card">
+                    <span class="stat-number">${data.stats.entities}</span>
+                    <div class="stat-label">Entities</div>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-number">${data.stats.connections}</span>
+                    <div class="stat-label">Connections</div>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-number">${data.stats.communities}</span>
+                    <div class="stat-label">Communities</div>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-number">${data.stats.modularity}</span>
+                    <div class="stat-label">Modularity</div>
+                </div>
+            `;
+        }
+        
+        function downloadCurrent() {
+            const filename = `semantic_communities_${currentPeriod}.html`;
+            const link = document.createElement('a');
+            link.href = filename;
+            link.download = filename;
+            link.click();
+            
+            // Show notification
+            showNotification(`Downloading ${periodData[currentPeriod].title} visualization...`);
+        }
+        
+        function downloadAll() {
+            const periods = ['pre_crimea', 'post_crimea', 'covid', 'war'];
+            periods.forEach(period => {
+                setTimeout(() => {
+                    const filename = `semantic_communities_${period}.html`;
+                    const link = document.createElement('a');
+                    link.href = filename;
+                    link.download = filename;
+                    link.click();
+                }, periods.indexOf(period) * 1000); // Stagger downloads
+            });
+            
+            showNotification('Downloading all period visualizations...');
+        }
+        
+        function downloadReport() {
+            const filename = 'community_insights_report.html';
+            const link = document.createElement('a');
+            link.href = filename;
+            link.download = filename;
+            link.click();
+            
+            showNotification('Downloading comprehensive analysis report...');
+        }
+        
+        function showNotification(message) {
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: #27ae60;
+                color: white;
+                padding: 15px 20px;
+                border-radius: 10px;
+                box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+                z-index: 1000;
+                font-weight: 600;
+                animation: slideIn 0.3s ease;
+            `;
+            notification.textContent = message;
+            
+            // Add animation keyframes
+            if (!document.querySelector('#notification-styles')) {
+                const style = document.createElement('style');
+                style.id = 'notification-styles';
+                style.textContent = `
+                    @keyframes slideIn {
+                        from { transform: translateX(100%); opacity: 0; }
+                        to { transform: translateX(0); opacity: 1; }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+            
+            document.body.appendChild(notification);
+            
+            // Remove after 3 seconds
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            updatePeriodInfo('pre_crimea');
+            
+            // Add loading states for iframes
+            document.querySelectorAll('.viz-frame').forEach(frame => {
+                frame.addEventListener('load', function() {
+                    console.log(`Loaded: ${frame.id}`);
+                });
+            });
+        });
+        
+        // Add keyboard navigation
+        document.addEventListener('keydown', function(e) {
+            const periods = ['pre_crimea', 'post_crimea', 'covid', 'war'];
+            const currentIndex = periods.indexOf(currentPeriod);
+            
+            if (e.key === 'ArrowLeft' && currentIndex > 0) {
+                const prevPeriod = periods[currentIndex - 1];
+                showPeriod(prevPeriod);
+                document.querySelector(`[onclick="showPeriod('${prevPeriod}')"]`).classList.add('active');
+            } else if (e.key === 'ArrowRight' && currentIndex < periods.length - 1) {
+                const nextPeriod = periods[currentIndex + 1];
+                showPeriod(nextPeriod);
+                document.querySelector(`[onclick="showPeriod('${nextPeriod}')"]`).classList.add('active');
+            }
+        });
+    </script>
+</body>
+</html>
